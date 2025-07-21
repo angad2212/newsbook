@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import cors from "cors"
 //import api from "./routes/api.js";
-//sample command: node server/index.js
 
 dotenv.config();
 connectDB();
