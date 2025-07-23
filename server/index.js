@@ -2,7 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import cors from "cors"
-//import api from "./routes/api.js";
+import api from "./routes/api.js";
 
 dotenv.config();
 connectDB();
@@ -15,7 +15,7 @@ app.use(cors({
   credentials: true,
 }));
 
-//app.use("/api", api);
+app.use("/api", api);
 //app.use('/uploads', express.static('uploads'));
 
 const PORT = process.env.PORT || 5000;
