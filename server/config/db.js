@@ -14,6 +14,6 @@ const connectDB = async () => {
 };
 
 export default connectDB;
-//connecting mongo DB
+//connecting mongo DB server
 //to the server using mongoose
 //and dotenv for environment variables
