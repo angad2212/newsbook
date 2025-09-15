@@ -15,15 +15,25 @@ export function LoginForm() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate('/');
-    }, 1000);
-  };
+  e.preventDefault();
+  setIsLoading(true);
+  try {
+    const res = await fetch("http://localhost:3009/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || "Login failed");
+    localStorage.setItem("token", data.token); // Store token for session
+    // Optionally: setToken(data.token); if you use token in state
+    navigate("/"); // Redirect after login
+  } catch (err: any) {
+    alert(err.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">

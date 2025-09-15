@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Edit2, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,28 +11,117 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingInterests, setIsEditingInterests] = useState(false);
   const [userInfo, setUserInfo] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
+    name: '',
+    email: '',
+    interests: [] as string[],
+    bookmarks: [] as any[],
+    readArticles: [] as any[],
   });
-  const [currentInterests, setCurrentInterests] = useState([
-    'Artificial Intelligence',
-    'Space & Astronomy',
-    'Technology',
-    'Climate Change',
-    'Startups & Business',
-  ]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSaveProfile = () => {
+  // Fetch user profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('You are not logged in!');
+          setLoading(false);
+          return;
+        }
+        const res = await fetch('http://localhost:3009/api/auth/profile', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.status === 401) {
+          alert('Session expired. Please log in again.');
+          setLoading(false);
+          return;
+        }
+
+        if (!res.ok) throw new Error('Failed to fetch profile');
+
+        const data = await res.json();
+        setUserInfo({
+          name: data.name,
+          email: data.email,
+          interests: data.interests || [],
+          bookmarks: data.bookmarks || [],
+          readArticles: data.readArticles || [],
+        });
+      } catch (err) {
+        alert('Could not load profile');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  // Update profile (name)
+  const handleSaveProfile = async () => {
     setIsEditing(false);
-    // Save profile logic here
-    console.log('Profile saved:', userInfo);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:3009/api/auth/profile/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: userInfo.name,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to update profile');
+
+      const updatedUser = await res.json();
+      setUserInfo((prev) => ({
+        ...prev,
+        name: updatedUser.name,
+      }));
+    } catch (err) {
+      alert('Could not update profile');
+    }
   };
 
-  const handleUpdateInterests = (newInterests: string[]) => {
-    setCurrentInterests(newInterests);
+  // Update only interests
+  const handleUpdateInterests = async (newInterests: string[]) => {
     setIsEditingInterests(false);
-    console.log('Interests updated:', newInterests);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:3009/api/auth/interests', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          interests: newInterests,
+        }),
+      });
+
+      if (!res.ok) throw new Error('Failed to update interests');
+
+      const updatedUser = await res.json();
+      setUserInfo((prev) => ({
+        ...prev,
+        interests: updatedUser.interests || [],
+      }));
+    } catch (err) {
+      alert('Could not update interests');
+    }
   };
+
+  if (loading) {
+    return <div className="p-6 max-w-4xl mx-auto">Loading...</div>;
+  }
 
   if (isEditingInterests) {
     return (
@@ -44,7 +132,7 @@ export default function Profile() {
           </CardHeader>
           <CardContent>
             <InterestSelector
-              initialInterests={currentInterests}
+              initialInterests={userInfo.interests}
               onComplete={handleUpdateInterests}
             />
             <div className="mt-4">
@@ -104,8 +192,7 @@ export default function Profile() {
                 id="email"
                 type="email"
                 value={userInfo.email}
-                onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
-                disabled={!isEditing}
+                disabled
                 className="pl-10"
               />
             </div>
@@ -134,7 +221,7 @@ export default function Profile() {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {currentInterests.map((interest, index) => (
+            {userInfo.interests.map((interest, index) => (
               <Badge key={index} className="newsbook-tag">
                 {interest}
               </Badge>
@@ -154,15 +241,15 @@ export default function Profile() {
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="text-center p-4 bg-muted/30 rounded-lg">
-              <div className="text-2xl font-bold text-primary">127</div>
+              <div className="text-2xl font-bold text-primary">{userInfo.readArticles.length}</div>
               <div className="text-sm text-muted-foreground">Articles Read</div>
             </div>
             <div className="text-center p-4 bg-muted/30 rounded-lg">
-              <div className="text-2xl font-bold text-primary">23</div>
+              <div className="text-2xl font-bold text-primary">{userInfo.bookmarks.length}</div>
               <div className="text-sm text-muted-foreground">Bookmarks</div>
             </div>
             <div className="text-center p-4 bg-muted/30 rounded-lg">
-              <div className="text-2xl font-bold text-primary">45</div>
+              <div className="text-2xl font-bold text-primary">0</div>
               <div className="text-sm text-muted-foreground">Videos Watched</div>
             </div>
           </div>

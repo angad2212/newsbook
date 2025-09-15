@@ -37,6 +37,7 @@ export function SignupForm() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Signup failed");
       setToken(data.token); // Save JWT for next step
+      localStorage.setItem("token", data.token); // <-- Add this line
       setStep(2);
     } catch (err: any) {
       alert(err.message);
@@ -49,6 +50,7 @@ export function SignupForm() {
   const handleInterestsComplete = async (interests: string[]) => {
   setIsLoading(true);
   try {
+    const token = localStorage.getItem("token"); // <-- Always get from localStorage
     const res = await fetch("http://localhost:3009/api/auth/interests", {
       method: "PUT",
       headers: {
@@ -57,12 +59,10 @@ export function SignupForm() {
       },
       body: JSON.stringify({ interests }),
     });
-    // ...rest of your code
     if (!res.ok) {
       const data = await res.json();
       throw new Error(data.message || "Failed to save interests");
     }
-    // Redirect to dashboard after successful interests update
     navigate("/");
   } catch (err: any) {
     alert(err.message);
