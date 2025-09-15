@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -18,23 +17,59 @@ export function SignupForm() {
     interests: [] as string[],
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const handleBasicInfoSubmit = (e: React.FormEvent) => {
+  // Handle first step: signup
+  const handleBasicInfoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStep(2);
+    setIsLoading(true);
+    try {
+      const res = await fetch("http://localhost:3009/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Signup failed");
+      setToken(data.token); // Save JWT for next step
+      setStep(2);
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleInterestsComplete = (interests: string[]) => {
-    setFormData({ ...formData, interests });
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      navigate('/');
-    }, 1000);
-  };
+  // Handle second step: set interests
+  const handleInterestsComplete = async (interests: string[]) => {
+  setIsLoading(true);
+  try {
+    const res = await fetch("http://localhost:3009/api/auth/interests", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ interests }),
+    });
+    // ...rest of your code
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.message || "Failed to save interests");
+    }
+    // Redirect to dashboard after successful interests update
+    navigate("/");
+  } catch (err: any) {
+    alert(err.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   if (step === 2) {
     return (
@@ -137,8 +172,9 @@ export function SignupForm() {
             <Button
               type="submit"
               className="w-full newsbook-green-bg hover:bg-primary/90"
+              disabled={isLoading}
             >
-              Continue
+              {isLoading ? "Signing up..." : "Continue"}
             </Button>
           </form>
 
