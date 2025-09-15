@@ -1,12 +1,8 @@
 import express from "express";
-//import auth from "./controllers/auth.js";
+//import auth from "./auth.js";
 
 const router = express.Router();
 
-// router.get("/", (req, res) => {
-//   res.json({ message: "API root" });
-// });
-
-// router.use("/users", auth)
+//router.use("/auth", auth)
 
 export default router;
