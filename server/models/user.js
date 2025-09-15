@@ -1,16 +1,21 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  _id: ObjectId,
-  name: String,
-  email: String,
-  passwordHash: String,   // store only hashed
-  interests: [String],    // ["AI", "Politics", "Space"]
-  bookmarks: [ObjectId],  // refs to saved articles
-  readArticles: [ObjectId], // refs to articles marked as read
-  createdAt: Date,
-  updatedAt: Date
-})
+  name: { type: String, required: true, trim: true },
+  email: { 
+    type: String, 
+    required: true, 
+    unique: true, 
+    lowercase: true, 
+    trim: true 
+  },
+  passwordHash: { type: String, required: true },
+
+  interests: { type: [String], default: [] },
+  bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Article", default: [] }],
+  readArticles: [{ type: mongoose.Schema.Types.ObjectId, ref: "Article", default: [] }],
+}, { timestamps: true });
+
 const User = mongoose.model("User", userSchema);
 
 export default User;
