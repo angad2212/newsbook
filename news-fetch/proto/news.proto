@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package news;
+
+// News service definition
+service NewsService {
+  // Fetch news based on search criteria
+  rpc FetchNews(FetchNewsRequest) returns (FetchNewsResponse);
+  
+  // Fetch news by category
+  rpc FetchNewsByCategory(FetchNewsByCategoryRequest) returns (FetchNewsResponse);
+  
+  // Fetch news by keywords
+  rpc FetchNewsByKeywords(FetchNewsByKeywordsRequest) returns (FetchNewsResponse);
+  
+  // Health check
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// Request messages
+message FetchNewsRequest {
+  string category = 1;           // e.g., "technology", "business", "health"
+  string country = 2;           // e.g., "us", "gb", "in"
+  string language = 3;          // e.g., "en", "es", "fr"
+  string keywords = 4;          // Free text search
+  string from_date = 5;         // YYYY-MM-DD format
+  string to_date = 6;           // YYYY-MM-DD format
+  string sort_by = 7;           // "publishedAt" or "relevance"
+  int32 max_articles = 8;       // 1-100
+}
+
+message FetchNewsByCategoryRequest {
+  string category = 1;          // Required: category to search
+  string country = 2;           // Optional: country filter
+  string language = 3;          // Optional: language filter
+  int32 max_articles = 4;       // Optional: max articles to return
+}
+
+message FetchNewsByKeywordsRequest {
+  string keywords = 1;          // Required: keywords to search
+  string country = 2;           // Optional: country filter
+  string language = 3;          // Optional: language filter
+  string sort_by = 4;           // Optional: "publishedAt" or "relevance"
+  int32 max_articles = 5;       // Optional: max articles to return
+}
+
+message HealthCheckRequest {
+  string service = 1;
+}
+
+// Response messages
+message FetchNewsResponse {
+  bool success = 1;
+  string message = 2;
+  repeated Article articles = 3;
+  int32 total_articles = 4;
+}
+
+message Article {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string content = 4;
+  string url = 5;
+  string image_url = 6;
+  string published_at = 7;
+  string language = 8;
+  Source source = 9;
+  repeated string tags = 10;    // Extracted or inferred tags
+}
+
+message Source {
+  string id = 1;
+  string name = 2;
+  string url = 3;
+  string country = 4;
+}
+
+message HealthCheckResponse {
+  string status = 1;
+  string message = 2;
+  int64 timestamp = 3;
+}
